@@ -27,10 +27,15 @@
 .m3-close{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;border:0;display:grid;place-items:center;background:rgba(255,255,255,.75);color:#1f2b29}
 .m3-cover{margin:0;position:relative;aspect-ratio:16/10;overflow:hidden;border-radius:22px 22px 0 0}.m3-cover img{width:100%;height:100%;object-fit:cover;display:block;animation:m3-ken 14s ease-out both}
 @keyframes m3-ken{from{transform:scale(1.12)}}
-.m3-cover figcaption{position:absolute;left:12px;bottom:10px;font-size:10px;color:#fff;background:rgba(0,0,0,.38);padding:3px 8px;border-radius:6px;backdrop-filter:none;letter-spacing:2px;color:var(--seal);font-weight:600}.m3-dark .m3-eyebrow{color:#ffb39f}
+.m3-cover figcaption{position:absolute;left:12px;bottom:10px;font-size:10px;color:#fff;background:rgba(0,0,0,.38);padding:3px 8px;border-radius:6px;backdrop-filter:none}
+.m3-card-body{padding:18px 22px 22px}
+.m3-eyebrow{font-size:10.5px;letter-spacing:2px;color:var(--seal);font-weight:600}.m3-dark .m3-eyebrow{color:#ffb39f}
+.m3-title small.m3-status-note{letter-spacing:.5px;color:var(--seal);opacity:1}
 .m3-card h2{font-family:"Songti SC","STSong",Georgia,serif;font-size:26px;font-weight:600;letter-spacing:2px;margin:6px 0 8px}.m3-card p{font-size:13px;line-height:1.85;opacity:.82}
 .m3-season{margin-top:12px;display:inline-flex;align-items:center;gap:6px;border:1px dashed var(--gold);background:rgba(199,154,75,.1);color:inherit;border-radius:999px;padding:6px 12px;font-size:11.5px}.m3-season svg{width:14px;height:14px;color:var(--gold)}
 .m3-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.m3-card .m3-arrival{display:flex;align-items:center;gap:5px;margin-top:10px;font-size:11px}
+.m3-arrival kbd{font:inherit;border:1px solid currentColor;border-radius:4px;padding:0 4px;line-height:1.5}
 .m3-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:14px;border:1px solid rgba(31,43,41,.14);background:rgba(255,255,255,.55);color:#1f2b29;font-size:13px;font-weight:550;transition:transform .2s,box-shadow .2s}
 .m3-btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.12)}.m3-btn svg{width:17px;height:17px}
 .m3-btn.primary{background:linear-gradient(135deg,#21463f,#1a3530);color:#fbf6ea;border:0}
@@ -101,7 +106,7 @@
 .pw-photo:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45),transparent 28%,transparent 55%,rgba(0,0,0,.6))}
 .pw-caption{max-width:520px;padding:16px 18px;border-radius:18px}.pw-caption p{font-size:13px;line-height:1.8;margin:8px 0 6px}.pw-caption small{font-size:10.5px;opacity:.65;line-height:1.6;display:block}.pw-caption a{color:var(--gold)}
 .pw-badge{display:inline-flex;gap:6px;align-items:center;font-size:11px;letter-spacing:1px;color:var(--gold)}.pw-badge svg{width:14px;height:14px}
-.pw-next{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:18px}.pw-next h3{font-size:11px;letter-spacing:2px;opacity:.65;font-weight:600}.pw-next .pw-sign{position:static}.pw-next .pw-sign span{background:rgba(255,255,255,.08);border:0;box-shadow:none;backdrop-filter:none;height:34px}
+.pw-next{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:18px}.pw-next h3{font-size:11px;letter-spacing:2px;opacity:.65;font-weight:600}.pw-next .pw-sign{position:static}.pw-next .pw-sign span{background:rgba(255,255,255,.08);border:0;box-shadow:none;backdrop-filter:none}.pw-next .pw-arrow{width:34px;height:34px}
 @media(max-width:760px){.pw-title h1{font-size:20px}.pw-top .m3-chip span{display:none}.pw-top .m3-chip{width:42px;padding:0}.pw-hint{display:none}.pw-bottom{flex-wrap:wrap;left:10px;right:10px}.pw-views{order:-1;width:100%;justify-content:space-between}.pw-pad{grid-template-columns:repeat(3,38px)}.pw-caption{max-width:none}.pw-next{width:100%}}
 .pw .m3-veil{background:#f3eee3;display:grid;place-items:center;transition:opacity .9s ease}.pw-veil-photo{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(28px) saturate(1.15);opacity:.5}
 .pw .m3-veil p{position:relative;font-family:"Songti SC","STSong",serif;font-size:34px;letter-spacing:8px;color:#2a3330;text-align:center}.pw .m3-veil p small{display:block;font-family:Inter,"PingFang SC",sans-serif;font-size:12px;letter-spacing:4px;opacity:.6;margin-bottom:10px}
@@ -113,7 +118,8 @@
 .m3-place.lake{font-size:15px;letter-spacing:.8em;color:rgba(240,252,255,.88);font-style:italic}
 .m3-place.lake:nth-child(5){font-size:22px;letter-spacing:1.2em}
 .m3-place.hill{color:rgba(255,250,236,.92);font-size:12px}
-.m3-place.dike{font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(40,60,50,.28);backdrop-filter:none;color:rgba(80,70,60,.75);text-shadow:0 1px 4px rgba(255,255,255,.7)}
+.m3-place.dike{font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(40,60,50,.28);backdrop-filter:none}
+.m3-place.city{font-size:12px;color:rgba(80,70,60,.75);text-shadow:0 1px 4px rgba(255,255,255,.7)}
 .m3-dark .m3-place.city{color:rgba(255,230,190,.8);text-shadow:none}
 .m3-osm{position:absolute;right:12px;bottom:6px;z-index:3;font-size:10px;color:rgba(40,50,48,.55);letter-spacing:.5px}.m3-dark .m3-osm{color:rgba(230,236,255,.5)}
 @media(max-width:760px){.m3-place{font-size:11px}.m3-place.lake:nth-child(5){font-size:16px}.m3-osm{bottom:auto;top:64px;right:10px}}

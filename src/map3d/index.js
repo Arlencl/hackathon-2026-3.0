@@ -12,6 +12,7 @@ import {createWorld} from './scene.js';
 import {mapPackageFor,STYLES,styleFor} from './packages.js';
 import {loadStamps,saveStamp} from './stamps.js';
 import {bindSpeak,stopSpeaking} from '../narration.js';
+import {requestTravel,beginManualWalk} from './travel.js';
 
 
 const ic=n=>`<i data-lucide="${n}"></i>`;
@@ -23,14 +24,14 @@ void main(){float d=abs(vUv.y-uFocus);float b=smoothstep(uRange*.35,uRange,d)*uA
 for(int i=0;i<20;i++){float a=float(i)*2.39996,r=sqrt((float(i)+.5)/20.);c+=texture2D(tDiffuse,vUv+vec2(cos(a),sin(a))*r*b/uRes);}c/=20.;
 vec2 q=vUv-.5;c.rgb*=1.-dot(q,q)*.55;gl_FragColor=c;}`};
 
-export function mountMap3D(host,{hydrate,toast}){
+export function mountMap3D(host,{hydrate}){
  const params=new URLSearchParams(location.hash.split('?')[1]),sid=params.get('s')||'westlake',focusId=params.get('id');
  const pkg=mapPackageFor(sid);
  if(!pkg){host.innerHTML='<p>此景区暂未提供三维底图。<a href="#map?s='+encodeURIComponent(sid)+'&view=scroll">查看绘卷</a></p>';return()=>{};}
  const {geo,layout,interaction:rules}=pkg;
  const presentation=rules.presentation,sessionKey=SESSION+':'+sid,tour=presentation?.tour||[];let tourIndex=-1,tourWalking=false;
  const stampEligible=id=>!presentation||presentation.stampSpots.includes(id);
- const {NODES,SPOT_GEO,canTravel,walkable,landField,shortestPath,nearestNode,neighboursOf,compassName,GEO_FRAME}=geo;
+ const {NODES,SPOT_GEO,canTravel,walkable,landField,nearestNode,neighboursOf,compassName,GEO_FRAME}=geo;
  let saved=null;try{saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');}catch{}
  let style=styleFor(pkg,params.get('style')||saved?.style);
  let MOODS=style.moods;
@@ -43,7 +44,7 @@ export function mountMap3D(host,{hydrate,toast}){
  <div class="m3-bubble" id="m3-bubble" hidden></div>
  <div class="m3-me" id="m3-me" aria-hidden="true"><span></span></div>
  <header class="m3-top">
-  <div class="m3-title"><a class="m3-chip m3-icon" href="#scenics" aria-label="全部景区">${ic('arrow-left')}</a><div><small>JINGJIAN · ${e(pkg.manifest.name)}</small><h1>${e(presentation?.title||'湖山微缩游')}</h1></div></div>
+  <div class="m3-title"><a class="m3-chip m3-icon" href="#scenics" aria-label="全部景区">${ic('arrow-left')}</a><div><small id="m3-status" role="status" aria-live="polite">JINGJIAN · ${e(pkg.manifest.name)}</small><h1>${e(presentation?.title||'湖山微缩游')}</h1></div></div>
   <div class="m3-actions">
    <details class="m3-style-picker" id="m3-style-picker">
     <summary class="m3-chip">${ic('palette')}<span id="m3-style-name">${e(style.name)}</span>${ic('chevron-down')}</summary>
@@ -99,22 +100,17 @@ export function mountMap3D(host,{hydrate,toast}){
 
  const markSeen=()=>{const h=$('#m3-hint');if(h&&!h.classList.contains('gone')){h.classList.add('gone');}};
  const straight=canTravel;
- function plan(tx,tz){
-  if(straight(me.x,me.z,tx,tz))return [{x:tx,z:tz,mode:'walk'}];
-  const nodes=Object.entries(NODES).map(([id,[x,z]])=>({id,d:Math.hypot(x-me.x,z-me.z)})).sort((a,b)=>a.d-b.d);
-  const start=nodes.find(n=>straight(me.x,me.z,...NODES[n.id]));if(!start)return [];const s=start.id;
-  const targetWalkable=walkable(tx,tz),endNode=(targetWalkable?Object.keys(NODES).map(id=>({id,d:Math.hypot(NODES[id][0]-tx,NODES[id][1]-tz)})).sort((a,b)=>a.d-b.d).slice(0,6).find(n=>straight(...NODES[n.id],tx,tz)):null)?.id||nearestNode(tx,tz).id;
-  const r=shortestPath(s,endNode);if(!r)return [];
-  const out=[{x:NODES[s][0],z:NODES[s][1],mode:'walk'}];
-  r.legs.forEach((leg,i)=>out.push({x:NODES[r.nodes[i+1]][0],z:NODES[r.nodes[i+1]][1],mode:leg.mode}));
-  if(targetWalkable&&straight(...NODES[endNode],tx,tz))out.push({x:tx,z:tz,mode:'walk'});
-  return out;
+ let noticeTimer;
+ function notice(text){
+  const label=$('#m3-status');if(label.textContent===text)return;
+  clearTimeout(noticeTimer);label.textContent=text;label.classList.add('m3-status-note');
+  noticeTimer=setTimeout(()=>{label.textContent='JINGJIAN · '+pkg.manifest.name;label.classList.remove('m3-status-note');},1800);
  }
  function walkTo(tx,tz,spotId=null){
+  markSeen();
+  if(!requestTravel(geo,me,tx,tz,spotId)){notice('此处暂不可达，请换个位置');return;}
   if(tourIndex>=0&&spotId!==tour[tourIndex])stopTour();
-  me.route=plan(tx,tz);me.goal=spotId;follow=true;markSeen();
-  if(!me.route.length)toast('那里暂时走不过去，换个地方试试');
-  else if(me.route.some(p=>p.mode==='boat'))toast('乘游船过湖');
+  keys.clear();follow=true;
   drawRoute();
  }
  const routeLine=new T.Line(new T.BufferGeometry(),new T.LineDashedMaterial({color:'#fff6df',dashSize:.25,gapSize:.18,transparent:true,opacity:.95,depthTest:false}));routeLine.renderOrder=5;scene.add(routeLine);
@@ -147,6 +143,7 @@ export function mountMap3D(host,{hydrate,toast}){
     ${w?`<button class="m3-btn primary" id="m3-enter">${ic('box')}走进三维实景</button>`:`<a class="m3-btn primary" href="#spot?s=${encodeURIComponent(sid)}&id=${encodeURIComponent(s.id)}">${ic('images')}看实景照片</a>`}
     ${here?(!stampEligible(s.id)?`<button class="m3-btn stamped" disabled>${ic('check')}已到达</button>`:stamps[s.id]?`<button class="m3-btn stamped" disabled>${ic('check')}已盖章</button>`:`<button class="m3-btn seal" id="m3-stamp">${ic('stamp')}盖章打卡</button>`):`<button class="m3-btn" id="m3-go">${ic('footprints')}走过去</button>`}
    </div>
+   ${here?`<p class="m3-arrival" role="status">${stamps[s.id]?'已打卡':'已到达'} · 按 <kbd>E</kbd> ${stampEligible(s.id)&&!stamps[s.id]?'盖章打卡':'查看景点'}</p>`:''}
    ${s.notice&&presentation?`<details class="m3-notice"><summary>参观提示</summary><p>${e(s.notice)}</p></details>`:''}
    <div class="m3-guide-row">${s.narration?.text?`<button class="m3-guide-link" id="m3-listen">${ic('volume-2')}<span>听讲解</span></button>`:''}<a class="m3-guide-link" href="#spot?s=${encodeURIComponent(sid)}&id=${encodeURIComponent(s.id)}&guide=1">${ic('message-circle')}问问导游 · 照片与讲解</a></div>
    ${nb.length?`<div class="m3-near"><h3>顺路去</h3>${nb.map(n=>{const o=spots.find(x=>x.id===n.id);return `<button data-walk="${n.id}"><span>${e(o.name.split(' · ')[0])}</span><small>${compassName(n.bearing)} · ${n.boat?'游船':'步行'}约 ${n.minutes} 分钟</small>${ic('arrow-right')}</button>`;}).join('')}</div>`:''}
@@ -239,10 +236,11 @@ export function mountMap3D(host,{hydrate,toast}){
  const ripples=[];
  function ripple(x,z){const m=new T.Mesh(new T.RingGeometry(.1,.16,40),new T.MeshBasicMaterial({color:'#fffaf0',transparent:true,opacity:.9,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,Math.max(.03,terrainHeight(x,z))+.03,z);m.userData.t=0;scene.add(m);ripples.push(m);}
  const keyMap={w:'f',arrowup:'f',s:'b',arrowdown:'b',a:'l',arrowleft:'l',d:'r',arrowright:'r'};
- const kd=ev=>{if(ev.target.closest?.('input,textarea'))return;const k=keyMap[ev.key.toLowerCase()];if(k){stopTour();keys.add(k);me.route=[];me.goal=null;drawRoute();follow=true;markSeen();ev.preventDefault();}
+ const kd=ev=>{if(ev.target.closest?.('input,textarea'))return;const k=keyMap[ev.key.toLowerCase()];if(k){ev.preventDefault();markSeen();if(!beginManualWalk(geo,me)){if(!ev.repeat)notice('靠岸后可自由漫步');return;}stopTour();keys.add(k);drawRoute();follow=true;}
   if(ev.key.toLowerCase()==='e'&&near){const s=spots.find(x=>x.id===near);if(s&&stampEligible(s.id)&&!stamps[s.id])stamp(s);else openCard(near);}};
  const ku=ev=>{const k=keyMap[ev.key.toLowerCase()];if(k)keys.delete(k);};
- addEventListener('keydown',kd);addEventListener('keyup',ku);
+ const blur=()=>keys.clear();
+ addEventListener('keydown',kd);addEventListener('keyup',ku);addEventListener('blur',blur);
  $('#m3-compass').onclick=()=>{goal.theta=0;goal.phi=.9;};
  $$('[data-mood]').forEach(b=>b.onclick=()=>setMood(b.dataset.mood));
  $('#m3-passport').onclick=()=>openBook();
@@ -285,7 +283,7 @@ export function mountMap3D(host,{hydrate,toast}){
   if(me.moving)persistThrottled();
   // Nearby spot
   const was=near;near=null;for(const s of spots){const [x,z]=NODES[nodeOf(s)]||posOf(s);if(Math.hypot(x-me.x,z-me.z)<rules.avatar.arrivalRadius){near=s.id;break;}}
-  if(was!==near){if(selected===was||selected===near)selected&&openCard(selected);}
+  if(was!==near&&selected)openCard(near||selected);
   // Camera
   if(follow||performance.now()-userAt>6000){if(me.moving||follow){goal.target.lerp(tmp.set(me.x,gy*.5,me.z),Math.min(1,dt*2.2));follow=true;}}
   // With the card open on a wide screen, keep the focus left of it.
@@ -315,7 +313,7 @@ t.style.opacity=vis?'':'0';t.style.pointerEvents=vis?'':'none';
   }
   const mp=hero.position.clone().add(new T.Vector3(0,1.05,0)).project(camera),meEl=$('#m3-me');meEl.style.transform=`translate(${(mp.x*.5+.5)*w}px,${(-mp.y*.5+.5)*h}px)`;meEl.classList.toggle('show',rig.dist>(presentation?12:24)&&mp.z<1);
   const b=$('#m3-bubble');
-  if(near&&!selected){const s=spots.find(x=>x.id===near),v=hero.position.clone().add(new T.Vector3(0,.9,0)).project(camera);b.hidden=false;b.innerHTML=`${stamps[near]?'已到 ':'到了 '}<b>${e(s.name.split(' · ')[0])}</b> <kbd>E</kbd> ${stamps[near]||!stampEligible(near)?'查看':'盖章'}`;b.style.transform=`translate(${(v.x*.5+.5)*w}px,${(-v.y*.5+.5)*h}px) translate(-50%,-100%)`;b.onclick=()=>openCard(near);}
+  if(near&&selected!==near){const s=spots.find(x=>x.id===near),v=hero.position.clone().add(new T.Vector3(0,.9,0)).project(camera);b.hidden=false;b.innerHTML=`${stamps[near]?'已打卡 ':'到了 '}<b>${e(s.name.split(' · ')[0])}</b> <kbd>E</kbd> ${stamps[near]||!stampEligible(near)?'查看':'盖章'}`;b.style.transform=`translate(${(v.x*.5+.5)*w}px,${(-v.y*.5+.5)*h}px) translate(-50%,-100%)`;b.onclick=()=>openCard(near);}
   else b.hidden=true;
  }
  function loop(){
@@ -334,7 +332,7 @@ t.style.opacity=vis?'':'0';t.style.pointerEvents=vis?'':'none';
  });
  if(params.get('debug'))window.__m3={camera,get world(){return world;},renderer,scene,composer,bloom,tilt,goal,rig,me,setMood,setStyle,get style(){return style.id;},walkTo,selectSpot,get near(){return near;},get tourIndex(){return tourIndex;},get spots(){return spots;}};
  loop();
- return()=>{alive=false;stopSpeaking();cancelAnimationFrame(frame);ro.disconnect();removeEventListener('keydown',kd);removeEventListener('keyup',ku);persist();
+ return()=>{alive=false;clearTimeout(noticeTimer);stopSpeaking();cancelAnimationFrame(frame);ro.disconnect();removeEventListener('keydown',kd);removeEventListener('keyup',ku);removeEventListener('blur',blur);persist();
   world.dispose();
   scene.traverse(o=>{o.geometry?.dispose();const m=o.material;(Array.isArray(m)?m:m?[m]:[]).forEach(x=>{x.map?.dispose();x.dispose();});});
   composer.dispose?.();renderer.dispose();renderer.forceContextLoss();audio?.close();};
