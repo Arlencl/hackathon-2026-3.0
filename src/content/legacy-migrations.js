@@ -1,14 +1,14 @@
-import {createBuiltinScenic,scenicPackage,sampleOwner} from './catalog.js';
+import {createBuiltinScenic,scenicPackage,scenicPackages,sampleOwner} from './catalog.js';
 const copy=value=>structuredClone(value);
 // Historical identity must not change when the product chooses a different default scenic.
 export const legacyScenicId='westlake';
 
 // Historical schema adapters are isolated from current editing and rendering code.
 export function upgradeBuiltinMap(sc){
- const pkg=scenicPackage(sc.id||legacyScenicId);if(!pkg?.manifest.legacy)return sc;
- const seed=createBuiltinScenic(pkg.manifest.id);
  for(const key of ['draft','published']){
-  const p=sc[key];if(!p||p.map?.custom||!pkg.manifest.legacy.replacedMapUrls.includes(p.map?.url))continue;
+  const p=sc[key];if(!p||p.map?.custom)continue;
+  const pkg=scenicPackages.find(pkg=>pkg.manifest.legacy?.replacedMapUrls.includes(p.map?.url));if(!pkg)continue;
+  const seed=createBuiltinScenic(pkg.manifest.id);
   p.map=copy(seed[key].map);
   for(const s of p.spots){const original=seed[key].spots.find(x=>x.id===s.id);if(original){s.x=original.x;s.y=original.y;}}
  }
@@ -16,7 +16,7 @@ export function upgradeBuiltinMap(sc){
 }
 export function upgradeLegacyScenic(state,{pendingAngles,touchSpot}){
  if(state.schema===7)return state;
- const pkg=scenicPackage(state.id||legacyScenicId),seed=pkg?createBuiltinScenic(pkg.manifest.id):null;
+ const pkg=scenicPackage(legacyScenicId),seed=createBuiltinScenic(legacyScenicId);
  if(state.schema!==6){
   const bind=()=>{for(const key of ['draft','published'])for(const s of state[key]?.spots||[]){const owner=sampleOwner(s);if(owner)s.pilotAsset=copy(owner.content.sample.binding);}state.schema=6;};
   if(state.schema===5)bind();
@@ -28,8 +28,9 @@ export function upgradeLegacyScenic(state,{pendingAngles,touchSpot}){
   }else{
    const ids=new Set(pkg?.manifest.legacy?.previousSpotIds||[]);
    const untouched=p=>p&&!p.map.custom&&p.spots.every(s=>ids.has(s.id)&&!Object.values(s.photos).some(p=>p.kind==='upload'));
-   if(seed&&ids.size&&untouched(state.draft)&&untouched(state.published)){seed.previousDemo=copy(state);state=seed;}
-   else bind();
+   // Repository reorganization must not replace an older saved draft with a
+   // fresh built-in demo. Preserve the pre-package upgrader's observable result.
+   if(!(ids.size&&untouched(state.draft)&&untouched(state.published)))bind();
   }
  }
  for(const key of ['draft','published'])for(const s of state[key]?.spots||[]){if(typeof s.guide!=='string')s.guide=pkg?.spots.find(o=>o.content.id===s.id)?.content.guide||'';if(typeof s.notice!=='string')s.notice='';}

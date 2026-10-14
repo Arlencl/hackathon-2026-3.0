@@ -36,13 +36,13 @@ export function sampleOwner(spot){
  if(!spot)return null;
  for(const pkg of packages)for(const owner of pkg.spots){
   const c=owner.content,r=c.sample?.reference;
-  if(r&&spot.id===c.id&&spot.photos?.[r.angle]?.kind===r.kind&&spot.photos[r.angle].url===assetById(owner,r.asset).url)return owner;
+  if(r&&spot.id===c.id&&spot.photos?.[r.angle]?.url===assetById(owner,r.asset).url)return owner;
  }
  return null;
 }
 export function boundSample(spot){
- const owner=sampleOwner(spot),binding=owner?.content.sample.binding;
- return binding&&spot.pilotAsset?.worldId===binding.worldId&&spot.pilotAsset.referenceUrl===binding.referenceUrl?owner:null;
+ const owner=sampleOwner(spot),binding=owner?.content.sample.binding,reference=owner?.content.sample.reference;
+ return binding&&spot.photos?.[reference.angle]?.kind===reference.kind&&spot.pilotAsset?.worldId===binding.worldId&&spot.pilotAsset.referenceUrl===binding.referenceUrl?owner:null;
 }
 export const samplePhoto=(spot,angle)=>{const owner=sampleOwner(spot);return photoFromAsset(owner,owner.content.sample.completion[angle],false);};
 export const sampleWorlds=owner=>owner.content.sample.worlds.map(({asset,receipt,...info})=>({...info,spz:assetById(owner,asset).url,receipt:assetById(owner,receipt).url,generated:false}));

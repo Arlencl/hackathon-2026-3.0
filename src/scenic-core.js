@@ -45,7 +45,7 @@ export function removePhoto(spot, angle) {delete spot.photos[angle];return touch
 export function pendingAngles(spot) {return ANGLES.filter(a=>!spot.photos[a.id]);}
 export function completeDemo(spot) {
   if(!Object.values(spot.photos).some(p=>p.kind!=='ai-demo'))throw Error('请先上传至少一张参考图片');
-  if(!canCompleteDemo(spot))throw Error('本版仅提供已配置原始实拍的补全样例；其他景点请上传实拍视角');
+  if(!canCompleteDemo(spot))throw Error('本版仅提供花港观鱼原始实拍的补全样例；其他景点请上传实拍视角');
   const missing=pendingAngles(spot);
   if(!missing.length)throw Error('全部视角均已准备好');
   for(const {id} of missing)spot.photos[id]=samplePhoto(spot,id);

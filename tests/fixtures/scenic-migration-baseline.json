@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "eeecf326",
+  "description": "SHA-256 of canonical JSON returned by the pre-package implementation. Captures saved-workspace upgrades and sample behavior, not the refactored implementation.",
+  "expectations": {
+    "schema-1-builtin": "1a62f006b68a4afb35bcab2b415facaa0f64854a369af8a8fd9682e8896db4ca",
+    "schema-1-custom": "f152dadc2f391c6d46a281fd273aa94155a1caf12d7f5a56ead93f50ecc4f2ab",
+    "schema-2-builtin": "1a62f006b68a4afb35bcab2b415facaa0f64854a369af8a8fd9682e8896db4ca",
+    "schema-2-custom": "f152dadc2f391c6d46a281fd273aa94155a1caf12d7f5a56ead93f50ecc4f2ab",
+    "schema-3-builtin": "1a62f006b68a4afb35bcab2b415facaa0f64854a369af8a8fd9682e8896db4ca",
+    "schema-3-custom": "f152dadc2f391c6d46a281fd273aa94155a1caf12d7f5a56ead93f50ecc4f2ab",
+    "schema-4-builtin": "1a62f006b68a4afb35bcab2b415facaa0f64854a369af8a8fd9682e8896db4ca",
+    "schema-4-custom": "f152dadc2f391c6d46a281fd273aa94155a1caf12d7f5a56ead93f50ecc4f2ab",
+    "schema-5-builtin": "1a62f006b68a4afb35bcab2b415facaa0f64854a369af8a8fd9682e8896db4ca",
+    "schema-5-custom": "f152dadc2f391c6d46a281fd273aa94155a1caf12d7f5a56ead93f50ecc4f2ab",
+    "schema-6-builtin": "1a62f006b68a4afb35bcab2b415facaa0f64854a369af8a8fd9682e8896db4ca",
+    "schema-6-custom": "f152dadc2f391c6d46a281fd273aa94155a1caf12d7f5a56ead93f50ecc4f2ab",
+    "schema-7-builtin": "08afcb77a7ec553301a997980adc67dee52d6758dc07a4c37848ae21875da130",
+    "schema-7-custom": "ba067a701f44c6c45c057d68dae15553abedd64387076a6bed963793f1d8a38c",
+    "schema-1-early-demo": "a2407f26bf517718d5d5d49d628de59568ea04c4ca0be83629c6b6514b0be2cb",
+    "schema-2-early-demo": "a2407f26bf517718d5d5d49d628de59568ea04c4ca0be83629c6b6514b0be2cb",
+    "workspace-edited": "f8d45528acd5153f2bbbb660e84577c14e9e2b804fdb209d983b2895f1055f10",
+    "initial-workspace": "1a62f006b68a4afb35bcab2b415facaa0f64854a369af8a8fd9682e8896db4ca",
+    "legacy-map-custom-id": "2287d3899e2ca0d448a460d0e357a95d6c473e2bd3c82b32688bbf32599ada30",
+    "completion-real": "4ef97c60c401d4b8e3fcc5607356305bad5896c237274670cabe396e5cb5aad1",
+    "completion-upload": "1b89a310f7d961b17750827af3bf908cf456bc2e9ebe66dbb46fca0139fab446",
+    "completion-undefined": "68fcf1980ccf7293e9350d6a6eeef903058d5be6157aebb2c52f3e71f65abe80",
+    "world-variants": "d4cda712b84501298295b775394de71c647acee897a9cb9e26d827107ede38c3"
+  }
+}
